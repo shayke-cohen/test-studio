@@ -4,9 +4,10 @@ import Observation
 @Observable
 final class TodoStore {
     private static let storageKey = "todos_v1"
+    private var isLoading = false
 
     var todos: [TodoItem] = [] {
-        didSet { save() }
+        didSet { if !isLoading { save() } }
     }
 
     var remainingCount: Int {
@@ -41,6 +42,8 @@ final class TodoStore {
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: Self.storageKey),
               let decoded = try? JSONDecoder().decode([TodoItem].self, from: data) else { return }
+        isLoading = true
         todos = decoded
+        isLoading = false
     }
 }

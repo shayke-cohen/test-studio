@@ -2,48 +2,68 @@ import Foundation
 import Observation
 
 @Observable
-final class TodoStore {
-    private static let storageKey = "todos_v1"
+final class FoodStore {
+    private static let storageKey = "food_items_v1"
     private var isLoading = false
 
-    var todos: [TodoItem] = [] {
+    var items: [FoodItem] = [] {
         didSet { if !isLoading { save() } }
     }
 
-    var remainingCount: Int {
-        todos.filter { !$0.isCompleted }.count
+    var todayItems: [FoodItem] {
+        items.filter { Calendar.current.isDateInToday($0.date) }
+    }
+
+    var totalCaloriesToday: Int {
+        todayItems.reduce(0) { $0 + $1.calories }
+    }
+
+    var totalProteinToday: Double {
+        todayItems.reduce(0) { $0 + $1.protein }
+    }
+
+    var totalCarbsToday: Double {
+        todayItems.reduce(0) { $0 + $1.carbs }
+    }
+
+    var totalFatToday: Double {
+        todayItems.reduce(0) { $0 + $1.fat }
+    }
+
+    let dailyCalorieGoal = 2000
+
+    var calorieProgress: Double {
+        min(Double(totalCaloriesToday) / Double(dailyCalorieGoal), 1.0)
     }
 
     init() {
         load()
     }
 
-    func add(_ title: String) {
-        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        todos.insert(TodoItem(title: trimmed), at: 0)
+    func add(_ item: FoodItem) {
+        items.insert(item, at: 0)
     }
 
-    func toggle(_ item: TodoItem) {
-        guard let index = todos.firstIndex(where: { $0.id == item.id }) else { return }
-        todos[index].isCompleted.toggle()
+    func delete(at offsets: IndexSet, from filtered: [FoodItem]) {
+        let idsToDelete = offsets.map { filtered[$0].id }
+        items.removeAll { idsToDelete.contains($0.id) }
     }
 
-    func delete(at offsets: IndexSet) {
-        todos.remove(atOffsets: offsets)
+    func items(for mealType: MealType) -> [FoodItem] {
+        todayItems.filter { $0.mealType == mealType }
     }
 
     private func save() {
-        if let data = try? JSONEncoder().encode(todos) {
+        if let data = try? JSONEncoder().encode(items) {
             UserDefaults.standard.set(data, forKey: Self.storageKey)
         }
     }
 
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: Self.storageKey),
-              let decoded = try? JSONDecoder().decode([TodoItem].self, from: data) else { return }
+              let decoded = try? JSONDecoder().decode([FoodItem].self, from: data) else { return }
         isLoading = true
-        todos = decoded
+        items = decoded
         isLoading = false
     }
 }

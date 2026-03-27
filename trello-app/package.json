@@ -1,0 +1,17 @@
+{
+  "name": "trello-app",
+  "version": "1.0.0",
+  "description": "Trello-like kanban board",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "npx playwright test"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

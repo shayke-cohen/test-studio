@@ -1,0 +1,5 @@
+node_modules/
+kanban.db
+kanban.db-shm
+kanban.db-wal
+test-results/
